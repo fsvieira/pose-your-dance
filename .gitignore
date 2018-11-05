@@ -1,5 +1,11 @@
 node_modules
-dist/
+
+# by using '*' we exclude dist's content but not the entire dir itself
+# this way we can now use wildcards
+dist/*
+**/*/dist/*
+!**/*/dist/*.mp4
+
 
 **/*/node_modules
 **/*/coverage
@@ -11,3 +17,5 @@ dist/
 .rpt2_cache/
 
 *.pyc
+
+

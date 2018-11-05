@@ -4,7 +4,12 @@
   "scripts": {
     "build_and_test_all": "cd posenet && yarn && yarn build && yarn lint && yarn test-travis",
     "link-local": "yalc link",
-    "presubmit": "ts-node presubmit.ts"
+    "presubmit": "ts-node presubmit.ts",
+    "startold": "cd posenet/demos && yarn && set NODE_ENV=development && cd .. && yarn && yalc push && cd demos && yarn && yalc link @tensorflow-models/posenet@0.2.3 && cd .. && yarn build && yalc push && cd demos && yarn watch",
+    "y-pb": "export NODE_ENV=development && cd posenet/demos && yarn && cd .. && yarn && yarn build && yalc push && cd demos && yalc link @tensorflow-models/posenet@0.2.3 && cd .. && yarn build && yalc push",
+    "heroku-postbuild": "yarn y-pb",
+    "y-run": "cd posenet && yalc push && cd demos && yalc link @tensorflow-models/posenet@0.2.3 && yarn watch",
+    "start": "yarn y-run"
   },
   "devDependencies": {
     "@types/node": "~10.3.4",
@@ -17,5 +22,9 @@
     "typescript": "~2.9.2",
     "yalc": "~1.0.0-pre.21"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "cacheDirectories": ["posenet/node_modules", "posenet/demos/node_modules", "/app/.yalc/packages", "posenet/demos/.yalc/packages", "posenet/dist"]
+
 }
+
+
