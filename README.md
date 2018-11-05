@@ -38,6 +38,6 @@ repo:
 
 ## Modification
 
-The posenet folder has been edited with various changes. The package.json file has been edited and tweaked for easily deployability to heroku. Please note if the [app](https://poseyourdance.herokuapp.com) seem to crash, just refresh your browser and try again.
+The posenet folder has been edited with various changes. The package.json file has been edited and tweaked for easy deployability to heroku. Please note if the [app](https://poseyourdance.herokuapp.com) seem to crash, just refresh your browser and try again.
 
 More details to follow soon.
