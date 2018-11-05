@@ -6,7 +6,7 @@
     "link-local": "yalc link",
     "presubmit": "ts-node presubmit.ts",
     "startold": "cd posenet/demos && yarn && set NODE_ENV=development && cd .. && yarn && yalc push && cd demos && yarn && yalc link @tensorflow-models/posenet@0.2.3 && cd .. && yarn build && yalc push && cd demos && yarn watch",
-    "y-pb": "export NODE_ENV=development && cd posenet/demos && yarn && cd .. && yarn && yarn build && yalc push && cd demos && yalc link @tensorflow-models/posenet@0.2.3 && cd .. && yarn build && yalc push",
+    "y-pb": "export NODE_ENV=development && npm i yalc -g && cd posenet/demos && yarn && cd .. && yarn && yarn build && yalc push && cd demos && yalc link @tensorflow-models/posenet@0.2.3 && cd .. && yarn build && yalc push",
     "heroku-postbuild": "yarn y-pb",
     "y-run": "cd posenet && yalc push && cd demos && yalc link @tensorflow-models/posenet@0.2.3 && yarn watch",
     "start": "yarn y-run"
