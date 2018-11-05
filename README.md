@@ -34,3 +34,8 @@ To run all of the tests, you can run the following command from the root of this
 repo:
 
 `yarn presubmit`
+
+
+## Modification
+
+The posenet folder has been edited with various changes. The package.json file has been edited and tweaked for easily deployability to heroku
