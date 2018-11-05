@@ -26,7 +26,7 @@ export {Checkpoint} from './checkpoints';
 export {partIds, partNames, poseChain} from './keypoints';
 export {Keypoint, Pose} from './types';
 // tslint:disable-next-line:max-line-length
-export {getAdjacentKeyPoints, getBoundingBox, getBoundingBoxPoints} from './util';
+export {getAdjacentKeyPoints, getAngledKeyPoints, getBoundingBox, getBoundingBoxPoints} from './util';
 export {
   ConvolutionDefinition,
   MobileNet,

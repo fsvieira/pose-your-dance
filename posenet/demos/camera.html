@@ -4,55 +4,111 @@
 <head>
     <title>PoseNet - Camera Feed Demo</title>
     <style>
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        color: black;
-    }
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            color: black;
+        }
 
-    .footer-text {
-        max-width: 600px;
-        text-align: center;
-        margin: auto;
-    }
+        .footer-text {
+            max-width: 600px;
+            text-align: center;
+            margin: auto;
+        }
 
-    @media only screen and (max-width: 600px) {
-      .footer-text, .dg {
-        display: none;
-      }
-    }
+        canvas {
+            display: block;
+            float: left;
+        }
+
+        @media only screen and (max-width: 600px) {
+
+            .footer-text,
+            .dg {
+                display: none;
+            }
+        }
+
+        .dg.ac {
+            z-index: 100 !important; /*for controls*/
+        }
     </style>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue-indigo.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div id="info" style='display:none'>
-    </div>
-    <div id="loading">
-        Loading the model...
-    </div>
-
-    <div id='main' style='display:none'>
-        <video id="video" playsinline style=" -moz-transform: scaleX(-1);
+    <div class="demo-layout mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
+        <header class="demo-header mdl-layout__header mdl-layout__header--scroll mdl-color--grey-100 mdl-color-text--grey-800">
+            <div class="mdl-layout__header-row">
+                <span class="mdl-layout-title" style="padding-left: 30px;">PoseYourDance</span>
+                <div class="mdl-layout-spacer"></div>
+            </div>
+        </header>
+        <div class="demo-ribbon"></div>
+        <main class="demo-main mdl-layout__content">
+            <div class="demo-container">
+                <!-- <div class="mdl-cell"></div> -->
+                <div class="camera-content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800">
+                    
+                    <div id="loading">
+                        <!--Loading the model...-->
+                        <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width: auto;"></div>
+                    </div>
+                    <div id='main' style='display:none'>
+                        <div id="info" style='display:none; z-index: 100000;'>
+                            </div>
+                        <video id="video" playsinline style="display: none;">
+                        </video>
+                        <br />
+                        <video id="video-camera" playsinline style=" -moz-transform: scaleX(-1);
         -o-transform: scaleX(-1);
         -webkit-transform: scaleX(-1);
         transform: scaleX(-1);
         display: none;
         ">
-        </video>
-        <canvas id="output" />
+                        </video>
+                        <div class="mdl-grid">
+                            <div class="mdl-cell mdl-cell--6-col">
+                                <canvas id="output"></canvas>
+                            </div>
+                            <div class="mdl-cell mdl-cell--6-col">
+                                <canvas id="output2"></canvas>
+                            </div>
+                            <div class="mdl-cell mdl-cell--12-col">
+                                    <h4 style="white-space: nowrap; text-align: center;">Master Score: <span style="white-space: nowrap;" id="master-score-val">0</span>
+                                        &nbsp;&nbsp;&nbsp;
+                                        Remaining Time: <span style="white-space: nowrap;" id="master-sec-elap">0</span>s</h4>
+                                    <h4 style="white-space: nowrap; text-align: center;" id="final-text"></h4>
+                            </div>
+                        </div>
+                        <div id="master-progress" class="mdl-progress mdl-js-progress"></div>
+                    </div>
+                </div>
+            </div>
+            <footer class="demo-footer mdl-mini-footer">
+                <div class="footer-text">
+                    <p>
+                        PoseNet runs with either a <strong>single-pose</strong> or <strong>multi-pose</strong>
+                        detection algorithm. The single person pose detector is faster and more accurate but requires
+                        only one subject present in the image.
+                        <br>
+                        <br> The <strong>output stride</strong> and <strong>image scale factor</strong> have the
+                        largest effects on accuracy/speed. A <i>higher</i> output stride results in lower accuracy but
+                        higher speed. A <i>higher</i> image scale factor results in higher accuracy but lower speed.
+                    </p>
+
+                </div>
+            </footer>
+        </main>
     </div>
-    <div class="footer">
-        <div class="footer-text">
-            <p>
-                PoseNet runs with either a <strong>single-pose</strong> or <strong>multi-pose</strong> detection algorithm. The single person pose detector is faster and more accurate but requires only one subject present in the image.
-                <br>
-                <br> The <strong>output stride</strong> and <strong>image scale factor</strong> have the largest effects on accuracy/speed. A <i>higher</i> output stride results in lower accuracy but higher speed. A <i>higher</i> image scale factor results in higher accuracy but lower speed.
-            </p>
-        </div>
-    </div>
+
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="camera.js"></script>
 </body>
 

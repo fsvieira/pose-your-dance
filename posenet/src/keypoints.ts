@@ -16,7 +16,9 @@
  */
 
 export type Tuple<T> = [T, T];
+export type TripleTuple<T> = [T, T, T];
 export type StringTuple = Tuple<string>;
+export type StringTripleTuple = TripleTuple<string>;
 export type NumberTuple = Tuple<number>;
 
 export const partNames = [
@@ -46,6 +48,18 @@ const connectedPartNames: StringTuple[] = [
   ['leftShoulder', 'rightShoulder'], ['leftHip', 'rightHip']
 ];
 
+// new for angles
+const angledPartNames: StringTripleTuple[] = [
+  ['leftWrist', 'leftElbow', 'leftShoulder'],
+  ['leftElbow', 'leftShoulder', 'leftHip'],
+  ['leftShoulder', 'leftHip', 'leftKnee'], 
+  ['leftHip', 'leftKnee', 'leftAnkle'],
+  ['rightWrist', 'rightElbow', 'rightShoulder'],
+  ['rightElbow', 'rightShoulder', 'rightHip'],
+  ['rightShoulder', 'rightHip', 'rightKnee'], 
+  ['rightHip', 'rightKnee', 'rightAnkle']
+];
+
 /*
  * Define the skeleton. This defines the parent->child relationships of our
  * tree. Arbitrarily this defines the nose as the root of the tree, however
@@ -65,3 +79,6 @@ export const poseChain: StringTuple[] = [
 
 export const connectedPartIndices = connectedPartNames.map(
     ([jointNameA, jointNameB]) => ([partIds[jointNameA], partIds[jointNameB]]));
+
+export const angledPartIndices = angledPartNames.map(
+  ([jointNameA, jointNameB, jointNameC]) => ([partIds[jointNameA], partIds[jointNameB], partIds[jointNameC]]));

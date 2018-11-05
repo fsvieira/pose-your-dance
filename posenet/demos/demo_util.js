@@ -25,6 +25,30 @@ function toTuple({y, x}) {
   return [y, x];
 }
 
+/**
+ * Calculates the angle between 3 pts, i.e. the angle created by a joint's arc
+ * Inspired By: https://gist.github.com/Samueleroux/f6854e8e443a210ff6958b23f2237097
+ * Uses cosine rule for triangles => CosB = (a^2 + c^2 - b^2)/(2ac)
+ * Note: We calc Angle A-B-C, not angle ACB as standard
+ */
+export function calc3PtAngle2D([y1, x1], [y2, x2], [y3, x3]) {
+  //1->A, 2->B, 3->C
+  var a = Math.sqrt(Math.pow((x2 - x3),2) + Math.pow((y2 - y3),2)); //p23 -> |PtB - PtC| => LineBC
+  var b = Math.sqrt(Math.pow((x1 - x3),2) + Math.pow((y1 - y3),2)); //p13 -> |PtA - PtC| => LineAC
+  var c = Math.sqrt(Math.pow((x1 - x2),2) + Math.pow((y1 - y2),2)); //p12 -> |PtA - PtB| => LineAB
+
+  // return result in degrees
+  return (Math.acos(((Math.pow(a, 2)) + (Math.pow(c, 2)) - (Math.pow(b, 2))) / (2 * a * c)) 
+          * 180 / Math.PI).toFixed(1);
+  
+}
+
+export function drawText(ctx, y, x, text, color = 'black') {
+  ctx.fillStyle = color;
+  ctx.textAlign = 'right';
+  ctx.fillText(text, x, y); 
+}
+
 export function drawPoint(ctx, y, x, r, color) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, 2 * Math.PI);
@@ -48,6 +72,7 @@ export function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
  * Draws a pose skeleton by looking up all adjacent keypoints/joints
  */
 export function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
+  //console.log("KeyPtNames", keypoints)
   const adjacentKeyPoints = posenet.getAdjacentKeyPoints(
     keypoints, minConfidence);
 
@@ -55,6 +80,23 @@ export function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     drawSegment(toTuple(keypoints[0].position),
       toTuple(keypoints[1].position), color, scale, ctx);
   });
+}
+
+/**
+ * Draws angles and returns them, in future this shuld be done by two functions
+ */
+export function drawAndGetAngles(keypoints, minConfidence, ctx, scale = 1) {
+  const angledKeyPoints = posenet.getAngledKeyPoints(keypoints, minConfidence)
+  const anglesObj = angledKeyPoints.map((keypoints) => {
+    // calculate angle
+    const angle = calc3PtAngle2D(toTuple(keypoints[0].position),
+      toTuple(keypoints[1].position), toTuple(keypoints[2].position));
+
+    drawText(ctx, keypoints[1].position.y + 1, keypoints[1].position.x + 1, angle, 'red')
+    //console.log("Got KeyPoint: ", keypoints)
+    return {name: keypoints[0].part+keypoints[1].part+keypoints[2].part, angle: angle};
+  });
+  return anglesObj;
 }
 
 /**

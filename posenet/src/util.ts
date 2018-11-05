@@ -17,13 +17,30 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {connectedPartIndices} from './keypoints';
+import {connectedPartIndices, angledPartIndices} from './keypoints';
 import {OutputStride} from './mobilenet';
 import {Keypoint, Pose, TensorBuffer3D, Vector2D} from './types';
+
+console.log("PartIndices: ", angledPartIndices);
+/*
+  0: (3) [9, 7, 5] --> <wrist,emb,shoul>
+  1: (3) [7, 5, 11] --> <elb, shl, hip>
+  2: (3) [5, 11, 13] --> <shld, hip, knee>
+  3: (3) [11, 13, 15] --> hip, knee, ank>
+  4: (3) [10, 8, 6] -----> repeat
+  5: (3) [8, 6, 12]
+  6: (3) [6, 12, 14]
+  7: (3) [12, 14, 16]
+*/
 
 function eitherPointDoesntMeetConfidence(
     a: number, b: number, minConfidence: number): boolean {
   return (a < minConfidence || b < minConfidence);
+}
+
+function anyPointDoesntMeetConfidence(
+    a: number, b: number, c: number, minConfidence: number): boolean {
+  return (a < minConfidence || b < minConfidence || c < minConfidence);
 }
 
 export function getAdjacentKeyPoints(
@@ -40,6 +57,23 @@ export function getAdjacentKeyPoints(
 
         return result;
       }, []);
+}
+
+
+export function getAngledKeyPoints(
+    keypoints: Keypoint[], minConfidence: number): Keypoint[][] {
+  return angledPartIndices.reduce(
+    (result: Keypoint[][], [jointA, jointB, jointC]): Keypoint[][] => {
+      if (anyPointDoesntMeetConfidence(
+        keypoints[jointA].score, keypoints[jointB].score,
+        keypoints[jointC].score, minConfidence)) {
+        return result;
+      }
+
+      result.push([keypoints[jointA], keypoints[jointB], keypoints[jointC]]);
+
+      return result;
+    }, []);
 }
 
 const {NEGATIVE_INFINITY, POSITIVE_INFINITY} = Number;

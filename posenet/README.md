@@ -357,6 +357,7 @@ import * as posenet from '@tensorflow-models/posenet';
 const imageScaleFactor = 0.5;
 const outputStride = 16;
 const flipHorizontal = false;
+const outputStride = 16;
 const maxPoseDetections = 2;
 
 async function estimateMultiplePosesOnImage(imageElement) {
