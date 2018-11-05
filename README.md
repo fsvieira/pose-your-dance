@@ -1,4 +1,4 @@
-# Pre-trained TensorFlow.js models
+# PoseYourDance
 
 This repository hosts a set of pre-trained models that have been ported to
 TensorFlow.js.
