@@ -84,7 +84,7 @@
 .demo-card-wide > .mdl-card__title {
   color: #fff;
   height: 176px;
-  background: url('images/android-desktop.png') center / cover;
+  background: url('https://raw.githubusercontent.com/irealva/tfjs-models/master/posenet/demos/camera.gif') center / cover;
 }
 .demo-card-wide > .mdl-card__menu {
   color: #fff;
