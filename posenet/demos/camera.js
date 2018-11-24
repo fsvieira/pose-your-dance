@@ -17,7 +17,7 @@
 import * as posenet from '@tensorflow-models/posenet';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
-import {drawKeypoints, drawAndGetAngles, drawSkeleton, drawBoundingBox} from './demo_util';
+import { drawKeypoints, drawAndGetAngles, drawSkeleton, drawBoundingBox } from './demo_util';
 
 const videoWidth = 640;//853;//600;
 const videoHeight = 360;//480;//500;
@@ -45,7 +45,7 @@ function isMobile() {
 async function setupVideo() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
-        'Browser API navigator.mediaDevices.getUserMedia not available');
+      'Browser API navigator.mediaDevices.getUserMedia not available');
   }
 
   const video = document.getElementById('video');
@@ -73,7 +73,7 @@ async function setupVideo() {
     console.log("Source opened, can procede with adding video source")
 
     const videoSourceBuffer = myMediaSource
-    .addSourceBuffer('video/mp4; codecs="avc1.4D401F"');
+      .addSourceBuffer('video/mp4; codecs="avc1.4D401F"');
     fetch("dance3_frag_silent.mp4").then(function (response) {
       // The data has to be a JavaScript ArrayBuffer
       console.log("video fetched")
@@ -87,7 +87,7 @@ async function setupVideo() {
       videoSourceBuffer.appendBuffer(videoData);
     });
   })
-  
+
 
   return new Promise((resolve) => {
     video.onloadedmetadata = () => {
@@ -100,7 +100,7 @@ async function setupVideo() {
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
-        'Browser API navigator.mediaDevices.getUserMedia not available');
+      'Browser API navigator.mediaDevices.getUserMedia not available');
   }
 
   const video = document.getElementById('video-camera');
@@ -181,13 +181,13 @@ function setupGui(cameras, net) {
     guiState.camera = cameras[0].deviceId;
   }
 
-  const gui = new dat.GUI({width: 300, closed: true});
+  const gui = new dat.GUI({ width: 300, closed: true });
 
   // The single-pose algorithm is faster and simpler but requires only one
   // person to be in the frame or results will be innaccurate. Multi-pose works
   // for more than 1 person
   const algorithmController =
-      gui.add(guiState, 'algorithm', ['single-pose']);
+    gui.add(guiState, 'algorithm', ['single-pose']);
 
   // The input parameters have the most effect on accuracy and speed of the
   // network
@@ -196,8 +196,8 @@ function setupGui(cameras, net) {
   // accuracy. 1.01 is the largest, but will be the slowest. 0.50 is the
   // fastest, but least accurate.
   const architectureController = input.add(
-      guiState.input, 'mobileNetArchitecture',
-      ['1.01', '1.00', '0.75', '0.50']);
+    guiState.input, 'mobileNetArchitecture',
+    ['1.01', '1.00', '0.75', '0.50']);
   // Output stride:  Internally, this parameter affects the height and width of
   // the layers in the neural network. The lower the value of the output stride
   // the higher the accuracy but slower the speed, the higher the value the
@@ -236,11 +236,11 @@ function setupGui(cameras, net) {
   //output.open();
 
 
-  architectureController.onChange(function(architecture) {
+  architectureController.onChange(function (architecture) {
     guiState.changeToArchitecture = architecture;
   });
 
-  algorithmController.onChange(function(value) {
+  algorithmController.onChange(function (value) {
     switch (guiState.algorithm) {
       case 'single-pose':
         //multi.close();
@@ -273,19 +273,19 @@ function startCountDown() {
   secRemainElem.innerHTML = maxSeconds;
   console.log(progBar.MaterialProgress);
 
-  var mainTimer = setInterval(function() {
+  var mainTimer = setInterval(function () {
     secRemainElem.innerHTML = parseInt(secRemainElem.innerHTML) - 1;
-    progBar.MaterialProgress.setProgress(parseInt((maxSeconds - parseInt(secRemainElem.innerHTML)) * (100/maxSeconds)));
+    progBar.MaterialProgress.setProgress(parseInt((maxSeconds - parseInt(secRemainElem.innerHTML)) * (100 / maxSeconds)));
   }, 1000);
 
-  setTimeout(function() {
+  setTimeout(function () {
     clearInterval(mainTimer);
     document.getElementById('video').pause();
     document.getElementById('video-camera').pause();
     document.getElementById('output').style.display = "none";
     document.getElementById('output2').style.display = "none";
     document.getElementById('final-text').innerHTML = "Game Over! Refresh your page to try again!";
-  }, (maxSeconds+0.5)*1000)
+  }, (maxSeconds + 0.5) * 1000)
 }
 
 /**
@@ -302,7 +302,7 @@ function detectPoseInRealTime(data) {
   var flipHorizontal = data[0].fH;
 
   //console.log("cVas", canvasID);
-  
+
 
   data = data.map(elemSet => {
     elemSet['canvas'] = document.getElementById(elemSet.cId);
@@ -343,7 +343,7 @@ function detectPoseInRealTime(data) {
     const imageScaleFactor = guiState.input.imageScaleFactor;
     const outputStride = +guiState.input.outputStride;
 
-    
+
     let minPoseConfidence;
     let minPartConfidence;
 
@@ -352,7 +352,7 @@ function detectPoseInRealTime(data) {
       const pose = await guiState.net.estimateSinglePose(
         elemSet.vid, imageScaleFactor, elemSet.fH, outputStride);
       poses.push(pose);
-      
+
       minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
       minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
 
@@ -386,43 +386,8 @@ function detectPoseInRealTime(data) {
         }
       });
     }
-    
-    // const pose = await guiState.net.estimateSinglePose(
-    //   data[0].vid, imageScaleFactor, data[0].fH, outputStride);
-    // poses.push(pose);
 
-    // minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
-    // minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
 
-    // data[0].ctx.clearRect(0, 0, data[0].vW, data[0].vH);
-
-    // if (guiState.output.showVideo) {
-    //   data[0].ctx.save();
-    //   data[0].ctx.scale((data[0].fH ? -1 : 1), 1);
-    //   data[0].ctx.translate((data[0].fH ? -data[0].vW : 0), 0);
-    //   data[0].ctx.drawImage(data[0].vid, 0, 0, data[0].vW, data[0].vH);
-    //   data[0].ctx.restore();
-    // }
-
-    // // For each pose (i.e. person) detected in an image, loop through the poses
-    // // and draw the resulting skeleton and keypoints if over certain confidence
-    // // scores
-    // poses.forEach(({score, keypoints}) => {
-    //   if (score >= minPoseConfidence) {
-    //     if (guiState.output.showPoints) {
-    //       drawKeypoints(keypoints, minPartConfidence, data[0].ctx);
-    //     }
-    //     if (guiState.output.showSkeleton) {
-    //       drawSkeleton(keypoints, minPartConfidence, data[0].ctx);
-    //       // if show skeleton also show angles
-    //       drawAngles(keypoints, minPartConfidence, data[0].ctx);
-    //     }
-    //     if (guiState.output.showBoundingBox) {
-    //       drawBoundingBox(keypoints, data[0].ctx);
-    //     }
-    //   }
-    // });
-    //console.log(data[1].angleObjArr)
 
     var score = 0;
 
@@ -444,9 +409,9 @@ function detectPoseInRealTime(data) {
         }
       });
     }
-    
 
-    score = score / 8 ; //normalised
+
+    score = score / 8; //normalised
     scoreValElem.innerHTML = (parseFloat(scoreValElem.innerHTML) + score).toFixed(2);
 
     // End monitoring code for frames per second
@@ -481,7 +446,7 @@ export async function bindPage() {
   } catch (e) {
     let info = document.getElementById('info');
     info.textContent = 'this browser does not support video capture,' +
-        'or this device does not have a camera';
+      'or this device does not have a camera';
     info.style.display = 'block';
     throw e;
   }
@@ -499,6 +464,6 @@ export async function bindPage() {
 }
 
 navigator.getUserMedia = navigator.getUserMedia ||
-    navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+  navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 // kick off the demo
 bindPage();
