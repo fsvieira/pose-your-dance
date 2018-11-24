@@ -21,7 +21,7 @@ const color = 'aqua';
 const boundingBoxColor = 'red';
 const lineWidth = 2;
 
-function toTuple({y, x}) {
+function toTuple({ y, x }) {
   return [y, x];
 }
 
@@ -33,20 +33,20 @@ function toTuple({y, x}) {
  */
 export function calc3PtAngle2D([y1, x1], [y2, x2], [y3, x3]) {
   //1->A, 2->B, 3->C
-  var a = Math.sqrt(Math.pow((x2 - x3),2) + Math.pow((y2 - y3),2)); //p23 -> |PtB - PtC| => LineBC
-  var b = Math.sqrt(Math.pow((x1 - x3),2) + Math.pow((y1 - y3),2)); //p13 -> |PtA - PtC| => LineAC
-  var c = Math.sqrt(Math.pow((x1 - x2),2) + Math.pow((y1 - y2),2)); //p12 -> |PtA - PtB| => LineAB
+  var a = Math.sqrt(Math.pow((x2 - x3), 2) + Math.pow((y2 - y3), 2)); //p23 -> |PtB - PtC| => LineBC
+  var b = Math.sqrt(Math.pow((x1 - x3), 2) + Math.pow((y1 - y3), 2)); //p13 -> |PtA - PtC| => LineAC
+  var c = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2)); //p12 -> |PtA - PtB| => LineAB
 
   // return result in degrees
-  return (Math.acos(((Math.pow(a, 2)) + (Math.pow(c, 2)) - (Math.pow(b, 2))) / (2 * a * c)) 
-          * 180 / Math.PI).toFixed(1);
-  
+  return (Math.acos(((Math.pow(a, 2)) + (Math.pow(c, 2)) - (Math.pow(b, 2))) / (2 * a * c))
+    * 180 / Math.PI).toFixed(1);
+
 }
 
 export function drawText(ctx, y, x, text, color = 'black') {
   ctx.fillStyle = color;
   ctx.textAlign = 'right';
-  ctx.fillText(text, x, y); 
+  ctx.fillText(text, x, y);
 }
 
 export function drawPoint(ctx, y, x, r, color) {
@@ -94,7 +94,7 @@ export function drawAndGetAngles(keypoints, minConfidence, ctx, scale = 1) {
 
     drawText(ctx, keypoints[1].position.y + 1, keypoints[1].position.x + 1, angle, 'red')
     //console.log("Got KeyPoint: ", keypoints)
-    return {name: keypoints[0].part+keypoints[1].part+keypoints[2].part, angle: angle};
+    return { name: keypoints[0].part + keypoints[1].part + keypoints[2].part, angle: angle };
   });
   return anglesObj;
 }
@@ -110,7 +110,7 @@ export function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
       continue;
     }
 
-    const {y, x} = keypoint.position;
+    const { y, x } = keypoint.position;
     drawPoint(ctx, y * scale, x * scale, 3, color);
   }
 }
