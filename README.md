@@ -1,4 +1,4 @@
-# Pre-trained TensorFlow.js models
+# PoseYourDance
 
 This repository hosts a set of pre-trained models that have been ported to
 TensorFlow.js.
@@ -17,14 +17,9 @@ and can be used as building blocks in other apps.
 ## Models
 
 ### Image classification
-- [MobileNet](https://github.com/tensorflow/tfjs-models/tree/master/mobilenet) - Classify images with labels from the [ImageNet database](http://www.image-net.org/).
-  - `npm i @tensorflow-models/mobilenet`
 - [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) - Realtime pose detection. Blog post [here](https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5).
   - `npm i @tensorflow-models/posenet`
 
-### General utilities
-- [KNN Classifier](https://github.com/tensorflow/tfjs-models/tree/master/knn-classifier) - Create a custom k-nearest neighbors classifier. Can be used for transfer learning.
-  - `npm i @tensorflow-models/knn-classifier`
 
 ## Development
 
@@ -39,3 +34,10 @@ To run all of the tests, you can run the following command from the root of this
 repo:
 
 `yarn presubmit`
+
+
+## Modification
+
+The posenet folder has been edited with various changes. The package.json file has been edited and tweaked for easy deployability to heroku. Please note if the [app](https://poseyourdance.herokuapp.com) seem to crash, just refresh your browser and try again.
+
+More details to follow soon.
