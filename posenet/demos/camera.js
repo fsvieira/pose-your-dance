@@ -153,8 +153,8 @@ const guiState = {
     imageScaleFactor: 0.5,
   },
   singlePoseDetection: {
-    minPoseConfidence: 0.1,
-    minPartConfidence: 0.5,
+    minPoseConfidence: 0.7, //0.5 //0.1
+    minPartConfidence: 0.9, //0.8 //0.5
   },
   multiPoseDetection: {
     maxPoseDetections: 5,
@@ -288,18 +288,19 @@ function startCountDown() {
   }, (maxSeconds + 0.5) * 1000)
 }
 
+/*alpha => approx angle at which score = 0.1*/
+/* score_min => 0 when angle is large, score_max => 1 when angle=>0,
+   score_cutoff => 0. when angle=>alpha, exp_decay based on alpha*/
+function calcDegAngleScore(x, alpha = 60) {
+  return Math.exp(- ((135 / alpha) * Math.sqrt(2 * (1 - Math.cos((x * Math.PI) / 180)))))
+}
+
 /**
  * Feeds an image to posenet to estimate poses - this is where the magic
  * happens. This function loops with a requestAnimationFrame method.
  */
 function detectPoseInRealTime(data) {
   console.log(data[0]);
-  var video = data[0].vid;
-  var net = data[0].net;
-  var canvasID = data[0].cId;
-  var canvWidth = data[0].vW;
-  var canvHeight = data[0].vH;
-  var flipHorizontal = data[0].fH;
 
   //console.log("cVas", canvasID);
 
@@ -319,7 +320,11 @@ function detectPoseInRealTime(data) {
   //console.log("FLIP-HORZ", flipHorizontal)
 
   const scoreValElem = document.getElementById("master-score-val");
+  const angleDiffElem = document.getElementById("angle-diff-val");
+  const deltaScoreValElem = document.getElementById("delta-score-val");
   const secRemainElem = document.getElementById("master-sec-elap");
+
+  var before = Date.now()
 
 
   // loop for every frame.
@@ -347,11 +352,21 @@ function detectPoseInRealTime(data) {
     let minPoseConfidence;
     let minPartConfidence;
 
-    for (const elemSet of data) {
-      let poses = [];
-      const pose = await guiState.net.estimateSinglePose(
-        elemSet.vid, imageScaleFactor, elemSet.fH, outputStride);
-      poses.push(pose);
+
+    const poseDat = [[
+      data[0], await guiState.net.estimateSinglePose(
+        data[0].vid, imageScaleFactor, data[0].fH, outputStride)
+    ],
+    [data[1], await guiState.net.estimateSinglePose(
+      data[1].vid, imageScaleFactor, data[1].fH, outputStride)]
+    ];
+
+
+    for (const [elemSet, pose] of poseDat) {
+      //let poses = [];
+      //const pose = await guiState.net.estimateSinglePose(
+      //  elemSet.vid, imageScaleFactor, elemSet.fH, outputStride);
+      //poses.push(pose);
 
       minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
       minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
@@ -369,29 +384,33 @@ function detectPoseInRealTime(data) {
       // For each pose (i.e. person) detected in an image, loop through the poses
       // and draw the resulting skeleton and keypoints if over certain confidence
       // scores
-      poses.forEach(({ score, keypoints }) => {
-        if (score >= minPoseConfidence) {
-          if (guiState.output.showPoints) {
-            drawKeypoints(keypoints, minPartConfidence, elemSet.ctx);
-          }
-          if (guiState.output.showSkeleton) {
-            drawSkeleton(keypoints, minPartConfidence, elemSet.ctx);
-            // if show skeleton also show angles
-            // after drawing angles also return them out
-            elemSet['angleObjArr'] = drawAndGetAngles(keypoints, minPartConfidence, elemSet.ctx);
-          }
-          if (guiState.output.showBoundingBox) {
-            drawBoundingBox(keypoints, elemSet.ctx);
-          }
+      // poses.forEach(({ score, keypoints }) => {
+      //   // do nothing
+      // });
+      var { score, keypoints } = pose;
+      if (score >= minPoseConfidence) {
+        if (guiState.output.showPoints) {
+          drawKeypoints(keypoints, minPartConfidence, elemSet.ctx);
         }
-      });
+        if (guiState.output.showSkeleton) {
+          drawSkeleton(keypoints, minPartConfidence, elemSet.ctx);
+          // if show skeleton also show angles
+          // after drawing angles also return them out
+          elemSet['angleObjArr'] = drawAndGetAngles(keypoints, minPartConfidence, elemSet.ctx);
+        }
+        if (guiState.output.showBoundingBox) {
+          drawBoundingBox(keypoints, elemSet.ctx);
+        }
+      }
     }
 
+    //console.log(stats.dom.)
+    // rate of change of score by frame == dScoreByDFrame
+    var total = 0;
+    var totAngleDiff = 0;
 
 
-    var score = 0;
-
-    if (data[1].angleObjArr !== undefined) {
+    if (data[1].angleObjArr !== undefined && data[0].angleObjArr !== undefined) {
       //make this a reduce function to get final score
       data[1].angleObjArr.forEach(angleObj => {
         var idx = data[0].angleObjArr.findIndex(x => x.name === angleObj.name);
@@ -401,18 +420,64 @@ function detectPoseInRealTime(data) {
           // this is normalised so x/8 so u get score btw 0 -> 1
           // score is added to total
 
+          //
+          // when you normalise you don't know how many u are summing up, so u always
+          // divide by 8 but shuld really divide by how many were found or seen
+          /*
+           *
+           *e^(-(alpha)^1 * 4.5 * 0.5 * sqrt(2 * (1-cos((x * pi)/180)))
+           * => e^(-(alpha)^1 * 2.25 * sqrt(2 * (1-cos((x * pi)/180)))
+          */
+
+          //use alhpa as angle so =60 by default
+          //f1(x, alpha = 60) { return Math.exp( - ( ((2.25 * 60) / alpha) * Math.sqrt(2 * (1-Math.cos((x * Math.PI)/180))) ) ) }
+          //==>f1(x, alpha = 60) { return Math.exp( - ( (135 / alpha) * Math.sqrt(2 * (1-Math.cos((x * Math.PI)/180))) ) ) }
+
           //const targetAngle = data[0].angleObjArr[idx].angle;
-          const absDiff = Math.abs(data[0].angleObjArr[idx].angle - angleObj.angle);
+          //const absAngleDiff <-- we need absAngleDiff for 0 <= diff <= 180
+          // for some joints this angle is similar if we normalise each connectPart diff vectors
+          // of TWO DIFFERENT POSES i.e. source and player
+          // such as [wrist,elbow] => vector{(writst_keypoint - elbow_kp) / ||wrist_kp- elbow_kp||}
+          // [elbow, shoulder] , ..., etc then...
+          // try to find the angle between this product using dot prod
+          // since its normalised i.e. mag => 1 so cosTheta = A . B
+          // other option is do || A - B || which is equivalent to
+          // sqrt(2(1 - cosTheta)) which can then simplify score func
+          // here A => [wrist,elbow]_vect for source
+          // B => [wrist,elbow]_vect for actor
 
-          score += Math.exp(-0.8 * absDiff);
-
+          var angleDiff = Math.abs(data[0].angleObjArr[idx].angle - angleObj.angle);
+          //deltaScore += calcDegAngleScore(angleDiff, 30);
+          //score += Math.exp(-0.8 * absDiff);
+          totAngleDiff += angleDiff;
+          total += 1;
         }
       });
     }
 
+    //normalised , ideally we need to scale w.r.t to confidence? somehow if needed....
+    // we assume if player doesnt show half body for e.g. your score shuld exceed by that much
 
-    score = score / 8; //normalised
-    scoreValElem.innerHTML = (parseFloat(scoreValElem.innerHTML) + score).toFixed(2);
+    // we also nned to normalise by fps... ideally 30fps should do score += 1 EVERY SECOND
+    // so essentially 1/FPS * deltaScore
+    // we also include 8 cause its 8 angles max for now...
+    var FPS = 1000 / (Date.now() - before); //crude FPS estimate
+    before = Date.now()
+
+    //var a = 0.5 * Math.exp(-1.9 * Math.log((totAngleDiff / total) - 9));
+    //var alpha = 0.001;
+    //var avgAngle = (alpha) * (totAngleDiff / total) + (1 - alpha) * oldAngleAvg;
+    //oldAngleAvg = avgAngle;
+
+    var b = Math.exp(-1 * ((totAngleDiff / total) / 10) ** 2) - 0.01;//3 * Math.exp(-0.22 * avgAngle) - 0.05;
+    var deltaScore = total >= 3 ? b : 0;
+    //deltaScore /= 4; //* (FPS / 30) # noew deltaScore is 0 -> 1
+    deltaScoreValElem.innerHTML = (deltaScore).toFixed(4);
+    angleDiffElem.innerHTML = (totAngleDiff / total).toFixed(2);
+
+    deltaScore = deltaScore > 0.1 ? deltaScore / FPS : -0.1 / FPS; //either normalise to fps or set to flat
+
+    scoreValElem.innerHTML = (parseFloat(scoreValElem.innerHTML) + deltaScore).toFixed(2);
 
     // End monitoring code for frames per second
     stats.end();
