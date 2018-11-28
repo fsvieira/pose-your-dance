@@ -55,7 +55,7 @@
             <div class="demo-container">
                 <!-- <div class="mdl-cell"></div> -->
                 <div class="camera-content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800">
-
+                    <a id="start-btn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast">Start</a>
                     <div id="loading">
                         <!--Loading the model...-->
                         <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width: auto;"></div>
@@ -78,11 +78,13 @@
                             <div class="mdl-cell mdl-cell--12-col">
                                     <h4 style="white-space: nowrap; text-align: center;">PerFrame Score Delta: <span style="white-space: nowrap;" id="delta-score-val">0</span>
                                       &nbsp;&nbsp;&nbsp; <span style="white-space: nowrap;" id="angle-diff-val">0</span>
+                                      &nbsp;&nbsp;&nbsp; <span style="white-space: nowrap;" id="player-avg-angle-val">0</span>
                                     </h4>
                                       <h4 style="white-space: nowrap; text-align: center;">Master Score: <span style="white-space: nowrap;" id="master-score-val">0</span>
                                         &nbsp;&nbsp;&nbsp;
                                         Remaining Time: <span style="white-space: nowrap;" id="master-sec-elap">0</span>s</h4>
                                     <h4 style="white-space: nowrap; text-align: center;" id="final-text"></h4>
+
                             </div>
                         </div>
                         <div id="master-progress" class="mdl-progress mdl-js-progress"></div>

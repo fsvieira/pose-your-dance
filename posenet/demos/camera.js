@@ -321,10 +321,12 @@ function detectPoseInRealTime(data) {
 
   const scoreValElem = document.getElementById("master-score-val");
   const angleDiffElem = document.getElementById("angle-diff-val");
+  const playerAvgAngleElem = document.getElementById("player-avg-angle-val");
   const deltaScoreValElem = document.getElementById("delta-score-val");
   const secRemainElem = document.getElementById("master-sec-elap");
 
-  var before = Date.now()
+  var before = Date.now();
+  var playerOldAvgAngle = 180;
 
 
   // loop for every frame.
@@ -408,6 +410,10 @@ function detectPoseInRealTime(data) {
     // rate of change of score by frame == dScoreByDFrame
     var total = 0;
     var totAngleDiff = 0;
+    var playerTotAngle = 0.0;
+
+    //data[0] -> src
+    //data[1] -> actor
 
 
     if (data[1].angleObjArr !== undefined && data[0].angleObjArr !== undefined) {
@@ -446,6 +452,8 @@ function detectPoseInRealTime(data) {
           // here A => [wrist,elbow]_vect for source
           // B => [wrist,elbow]_vect for actor
 
+          playerTotAngle += parseFloat(angleObj.angle);
+
           var angleDiff = Math.abs(data[0].angleObjArr[idx].angle - angleObj.angle);
           //deltaScore += calcDegAngleScore(angleDiff, 30);
           //score += Math.exp(-0.8 * absDiff);
@@ -468,15 +476,31 @@ function detectPoseInRealTime(data) {
     //var alpha = 0.001;
     //var avgAngle = (alpha) * (totAngleDiff / total) + (1 - alpha) * oldAngleAvg;
     //oldAngleAvg = avgAngle;
+    //playerAvgAngle /= total; //must divide by total to get avganlge
 
-    var b = Math.exp(-1 * ((totAngleDiff / total) / 10) ** 2) - 0.01;//3 * Math.exp(-0.22 * avgAngle) - 0.05;
-    var deltaScore = total >= 3 ? b : 0;
+    //totAngleDiff --> for P1 and P2
+    //playerOldNewAngleDiff --> for P2 (Player/User) only
+    //must have >=3 joints on screen for scoring
+    //3 * Math.exp(-0.22 * avgAngle) - 0.05;
+    var scoreVal = (Math.exp(-1 * ((totAngleDiff / total) / 10) ** 2) - 0.01);
+    var playerOldNewAngleDiff = Math.abs((playerTotAngle / total) - playerOldAvgAngle);
+    playerOldAvgAngle = (playerTotAngle / total);
+
+    //2.0 is thr avgYourAngle diff from prev frame if less than that then penalise
+    // if u dont play then u get negatve scoring!!
+    // this has some issues due to random noise but its usually alright
+    // now i get -2.3 no play --> 1.3 with play
+    var deltaScore = total >= 3 ?
+      (playerOldNewAngleDiff > 2.0 ?
+        (scoreVal > 0.1 ? scoreVal / FPS
+          : 0) : -0.1 / FPS) : 0;
+
+    deltaScore = Number.isNaN(deltaScore) ? 0 : deltaScore;
     //deltaScore /= 4; //* (FPS / 30) # noew deltaScore is 0 -> 1
-    deltaScoreValElem.innerHTML = (deltaScore).toFixed(4);
+    //scoreval is unnormalised by fps
+    deltaScoreValElem.innerHTML = (scoreVal).toFixed(4);
     angleDiffElem.innerHTML = (totAngleDiff / total).toFixed(2);
-
-    deltaScore = deltaScore > 0.1 ? deltaScore / FPS : -0.1 / FPS; //either normalise to fps or set to flat
-
+    playerAvgAngleElem.innerHTML = (playerOldNewAngleDiff).toFixed(2);//(playerTotAngle / total).toFixed(2); //new
     scoreValElem.innerHTML = (parseFloat(scoreValElem.innerHTML) + deltaScore).toFixed(2);
 
     // End monitoring code for frames per second
@@ -498,6 +522,9 @@ function detectPoseInRealTime(data) {
  */
 export async function bindPage() {
   // Load the PoseNet model weights with architecture 0.75
+  //var userInput = await waitForStart();
+
+  //console.log(userInput);
   const net = await posenet.load(0.75);
 
   document.getElementById('loading').style.display = 'none';
@@ -531,4 +558,21 @@ export async function bindPage() {
 navigator.getUserMedia = navigator.getUserMedia ||
   navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 // kick off the demo
-bindPage();
+document.getElementById("start-btn").addEventListener("click", function (params) {
+  bindPage();
+});
+
+
+// export async function waitForStart() {
+//   //build modal content specific to task
+//   //display modal
+//   return new Promise(function (resolve, reject) {
+//     document.getElementById("start-btn").addEventListener("click", function (e) {
+//       //var input = $('#input-data').val();
+//       resolve("start");
+//     });
+//   });
+// }
+document.getElementById("start-btn").addEventListener("click", function (e) {
+  bindPage();
+});
