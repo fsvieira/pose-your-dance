@@ -22,8 +22,8 @@ import { drawKeypoints, drawAndGetAngles, drawSkeleton, drawBoundingBox } from '
 const videoWidth = 640;//853;//600;
 const videoHeight = 360;//480;//500;
 
-const camVidWidth = 640;
-const camVidHeight = 360;
+const camVidWidth = 640;//640;
+const camVidHeight = 360;//360;
 const stats = new Stats();
 
 function isAndroid() {
@@ -42,7 +42,7 @@ function isMobile() {
  * Loads a the camera to be used in the demo
  *
  */
-async function setupVideo() {
+async function setupVideo(vidFName = "dance3_frag_silent.mp4", vidCodec = "avc1.4D401F") {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
       'Browser API navigator.mediaDevices.getUserMedia not available');
@@ -73,8 +73,8 @@ async function setupVideo() {
     console.log("Source opened, can procede with adding video source")
 
     const videoSourceBuffer = myMediaSource
-      .addSourceBuffer('video/mp4; codecs="avc1.4D401F"');
-    fetch("dance3_frag_silent.mp4").then(function (response) {
+      .addSourceBuffer('video/mp4; codecs=' + vidCodec);
+    fetch(vidFName).then(function (response) {
       // The data has to be a JavaScript ArrayBuffer
       console.log("video fetched")
       videoSourceBuffer.addEventListener('updateend', function (_) {
@@ -127,34 +127,38 @@ async function setupCamera() {
   });
 }
 
-async function loadVideo() {
-  const video = await setupVideo();
-  //const videoCam = await setupCamera();
+async function loadVideo(vidFName = "dance3_frag_silent.mp4", vidCodec = "avc1.4D401F", playAudio = true) {
+  console.log("Got Vid Data: ", vidFName, "\t", vidCodec)
+  const video = await setupVideo(vidFName, vidCodec);
+  video.muted = !playAudio; //TODO: make this a setting!
   video.play();
-  //videoCam.play()
 
   return video;
 }
 
 async function loadVideoCam() {
   const videoCam = await setupCamera();
-  //const videoCam = await setupCamera();
   videoCam.play();
-  //videoCam.play()
 
   return videoCam;
 }
+
+// if (!localStorage.getItem('guiState')) {
+//   localStorage.setItem('guiState')
+// } else {
+//   guiState = localStorage.getItem('guiState');
+// }
 
 const guiState = {
   algorithm: 'single-pose',
   input: {
     mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
     outputStride: 16,
-    imageScaleFactor: 0.5,
+    imageScaleFactor: localStorage.getItem('imageSF') ? parseFloat(parseFloat(localStorage.getItem('imageSF')).toFixed(2)) : 0.40,//0.35 //0.5
   },
   singlePoseDetection: {
     minPoseConfidence: 0.7, //0.5 //0.1
-    minPartConfidence: 0.9, //0.8 //0.5
+    minPartConfidence: localStorage.getItem('minPC') ? parseFloat(parseFloat(localStorage.getItem('minPC')).toFixed(2)) : 0.8, //0.75 //0.9, //0.8 //0.5
   },
   multiPoseDetection: {
     maxPoseDetections: 5,
@@ -166,6 +170,7 @@ const guiState = {
     showVideo: true,
     showSkeleton: true,
     showPoints: true,
+    showAngles: true,
     showBoundingBox: false,
   },
   net: null,
@@ -205,7 +210,11 @@ function setupGui(cameras, net) {
   input.add(guiState.input, 'outputStride', [8, 16, 32]);
   // Image scale factor: What to scale the image by before feeding it through
   // the network.
-  input.add(guiState.input, 'imageScaleFactor').min(0.2).max(1.0);
+  const sfController = input.add(guiState.input, 'imageScaleFactor', 0.2, 1.0);
+  sfController.onChange(function (sf) {
+    localStorage.setItem('imageSF', sf);
+  });
+
   //input.open();
 
   // Pose confidence: the overall confidence in the estimation of a person's
@@ -214,7 +223,10 @@ function setupGui(cameras, net) {
   // position is accurate (i.e. the elbow's position)
   let single = gui.addFolder('Single Pose Detection');
   single.add(guiState.singlePoseDetection, 'minPoseConfidence', 0.0, 1.0);
-  single.add(guiState.singlePoseDetection, 'minPartConfidence', 0.0, 1.0);
+  var minPCController = single.add(guiState.singlePoseDetection, 'minPartConfidence', 0.0, 1.0);
+  minPCController.onChange(function (value) {
+    localStorage.setItem('minPC', value);
+  });
 
   // let multi = gui.addFolder('Multi Pose Detection');
   // multi.add(guiState.multiPoseDetection, 'maxPoseDetections')
@@ -232,7 +244,9 @@ function setupGui(cameras, net) {
   output.add(guiState.output, 'showVideo');
   output.add(guiState.output, 'showSkeleton');
   output.add(guiState.output, 'showPoints');
+  output.add(guiState.output, 'showAngles');
   output.add(guiState.output, 'showBoundingBox');
+
   //output.open();
 
 
@@ -254,6 +268,8 @@ function setupGui(cameras, net) {
   });
 
   gui.close();
+
+
 }
 
 /**
@@ -265,28 +281,7 @@ function setupFPS() {
 }
 
 
-function startCountDown() {
-  const secRemainElem = document.getElementById("master-sec-elap");
-  const progBar = document.querySelector("#master-progress");
-  progBar.MaterialProgress.setProgress(100);
-  const maxSeconds = 60;
-  secRemainElem.innerHTML = maxSeconds;
-  console.log(progBar.MaterialProgress);
 
-  var mainTimer = setInterval(function () {
-    secRemainElem.innerHTML = parseInt(secRemainElem.innerHTML) - 1;
-    progBar.MaterialProgress.setProgress(parseInt((maxSeconds - parseInt(secRemainElem.innerHTML)) * (100 / maxSeconds)));
-  }, 1000);
-
-  setTimeout(function () {
-    clearInterval(mainTimer);
-    document.getElementById('video').pause();
-    document.getElementById('video-camera').pause();
-    document.getElementById('output').style.display = "none";
-    document.getElementById('output2').style.display = "none";
-    document.getElementById('final-text').innerHTML = "Game Over! Refresh your page to try again!";
-  }, (maxSeconds + 0.5) * 1000)
-}
 
 /*alpha => approx angle at which score = 0.1*/
 /* score_min => 0 when angle is large, score_max => 1 when angle=>0,
@@ -300,7 +295,7 @@ function calcDegAngleScore(x, alpha = 60) {
  * happens. This function loops with a requestAnimationFrame method.
  */
 function detectPoseInRealTime(data) {
-  console.log(data[0]);
+  //console.log(data[0]);
 
   //console.log("cVas", canvasID);
 
@@ -396,6 +391,8 @@ function detectPoseInRealTime(data) {
         }
         if (guiState.output.showSkeleton) {
           drawSkeleton(keypoints, minPartConfidence, elemSet.ctx);
+        }
+        if (guiState.output.showAngles) {
           // if show skeleton also show angles
           // after drawing angles also return them out
           elemSet['angleObjArr'] = drawAndGetAngles(keypoints, minPartConfidence, elemSet.ctx);
@@ -511,9 +508,60 @@ function detectPoseInRealTime(data) {
       //only continue detection if time is not over.
       requestAnimationFrame(poseDetectionFrame);
     }
+    else {
+      console.log("Game over as remTime = 0s");
+    }
   }
 
   poseDetectionFrame();
+}
+
+
+function startCountDown() {
+  console.log("countdown starting...")
+  const secRemainElem = document.getElementById("master-sec-elap");
+  const progBar = document.querySelector("#master-progress");
+  progBar.MaterialProgress.setProgress(100);
+  //const maxSeconds = Math.floor(timeLim);
+
+  //console.log(progBar.MaterialProgress);
+
+
+
+  setTimeout(function () {
+    const vid1 = document.getElementById('video');
+    const vid2 = document.getElementById('video-camera');
+
+    const maxSeconds = Math.floor(vid1.duration);
+    secRemainElem.innerHTML = maxSeconds;
+
+    var mainTimer = setInterval(function () {
+      secRemainElem.innerHTML = parseInt(secRemainElem.innerHTML) - 1;
+      progBar.MaterialProgress.setProgress(parseInt((maxSeconds - parseInt(secRemainElem.innerHTML)) * (100 / maxSeconds)));
+    }, 1000);
+
+    console.log("HELLOW", vid1.duration);
+    setTimeout(function () {
+      clearInterval(mainTimer);
+      vid1.pause();
+      vid1.src = '';
+      vid2.pause();
+      vid2.src = '';
+      document.getElementById('output-pane').style.display = "none";
+      document.getElementById('final-score-pane').style.display = "";
+
+
+      document.getElementById('final-text').innerHTML =
+        "Game Over! You scored: " +
+        document.getElementById('master-score-val').innerHTML +
+        "!<br>Your Page will refresh in 5 seconds.";
+
+      setTimeout(function () {
+        //set timeout to refesh page
+        location.reload();
+      }, 5000);
+    }, (maxSeconds + 0.1) * 1000);
+  }, 1000);
 }
 
 /**
@@ -523,17 +571,24 @@ function detectPoseInRealTime(data) {
 export async function bindPage() {
   // Load the PoseNet model weights with architecture 0.75
   //var userInput = await waitForStart();
+  document.getElementById('loading').style.display = '';
+
+  var playAudio = document.getElementById("switch-audio").checked;
+  var e = document.getElementById("difficulty-select");
+
+  const vidFile = e.options[e.selectedIndex].value;//"this_is_me.mp4";//"napoleon_dynamite.mp4";//"fortnight_360p_new2.mp4";//"dance3_frag_silent.mp4";
+  const vidCodec = "avc1.64001E, mp4a.40.2";//"avc1.4D401F"
 
   //console.log(userInput);
   const net = await posenet.load(0.75);
 
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('main').style.display = 'block';
+
+  document.getElementById('output-pane').style.display = '';
 
   let video, videoCam;
 
   try {
-    video = await loadVideo();
+    video = await loadVideo(vidFile, vidCodec, playAudio);
     videoCam = await loadVideoCam();
   } catch (e) {
     let info = document.getElementById('info');
@@ -543,36 +598,35 @@ export async function bindPage() {
     throw e;
   }
 
-  console.log("both video loaded.");
+
+
   setupGui([], net);
   setupFPS();
   let data = [
     { vid: video, net: net, cId: 'output', vW: videoWidth, vH: videoHeight, fH: false },
-    { vid: videoCam, net: net, cId: 'output2', vW: camVidWidth, vH: camVidHeight, fH: true },
+    { vid: videoCam, net: net, cId: 'output2', vW: camVidWidth, vH: camVidHeight, fH: true },//true
   ]
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('pre-start-grid').style.display = 'none';
+
+  console.log("Both video streams are loaded.");
+  console.log(video.duration, " --- ", video.readyState);
   startCountDown();
   detectPoseInRealTime(data);
+
+
+
   //detectPoseInRealTime(videoCam, net, 'output2', camVidWidth, camVidHeight, true);
 }
 
 navigator.getUserMedia = navigator.getUserMedia ||
   navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-// kick off the demo
+
 document.getElementById("start-btn").addEventListener("click", function (params) {
+  // kick off the demo
   bindPage();
 });
 
 
-// export async function waitForStart() {
-//   //build modal content specific to task
-//   //display modal
-//   return new Promise(function (resolve, reject) {
-//     document.getElementById("start-btn").addEventListener("click", function (e) {
-//       //var input = $('#input-data').val();
-//       resolve("start");
-//     });
-//   });
-// }
-document.getElementById("start-btn").addEventListener("click", function (e) {
-  bindPage();
-});
+

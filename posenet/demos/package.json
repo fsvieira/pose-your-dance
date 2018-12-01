@@ -14,7 +14,7 @@
     "stats.js": "^0.17.0"
   },
   "scripts": {
-    "watch": "export NODE_ENV=development && parcel serve --no-hmr index.html --port $PORT",
+    "watch": "NODE_ENV=production && parcel serve --no-hmr index.html --port $PORT",
     "build": "NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
     "build-camera": "NODE_ENV=production parcel build camera.html  --no-minify --public-url ./",
     "lint": "eslint ."

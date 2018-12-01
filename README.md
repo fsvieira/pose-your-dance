@@ -41,3 +41,22 @@ repo:
 The posenet folder has been edited with various changes. The package.json file has been edited and tweaked for easy deployability to heroku. Please note if the [app](https://poseyourdance.herokuapp.com) seem to crash, just refresh your browser and try again.
 
 More details to follow soon.
+
+### Using a new video
+
+1. Download [Bento4 SDK](https://www.bento4.com/)
+
+2. `ffmpeg -i fortnight_360p.mp4 -movflags frag_keyframe+empty_moov+default_base_moof fortnight_360p_new.mp4`
+
+3. Get file info using `mp4info.exe file.mp4  | grep "Codec"`
+```
+$> mp4info.exe file_frag.mp4  | grep "Codec"
+    Codecs String: avc1.42C01E
+    Codecs String: mp4a.40.2
+```
+4. Copy to dist dir: `cp file_frag.mp4 posenet\demos\dist\`
+
+5. Edit video's codec info in camera.js as:
+```
+const vidCodec = "avc1.64001E, mp4a.40.2"
+```
